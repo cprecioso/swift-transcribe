@@ -28,16 +28,25 @@ jobs:
       - id: release
         uses: googleapis/release-please-action@v5
 
-      - if: ${{ steps.release.outputs.release_created }}
-        uses: actions/download-artifact@v8
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+
+  publish:
+    needs: release-please
+    runs-on: ubuntu-latest
+
+    if: ${{ fromJSON(needs.release-please.outputs.release_created) }}
+
+    steps:
+      - uses: actions/download-artifact@v8
         with:
           pattern: "*.artifactbundle"
           path: release-assets
           merge-multiple: true
 
-      - if: ${{ steps.release.outputs.release_created }}
-        run: gh release upload "$TAG_NAME" release-assets/*.artifactbundle.zip
+      - run: gh release upload "$TAG_NAME" release-assets/*.artifactbundle.zip
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          TAG_NAME: ${{ steps.release.outputs.tag_name }}
+          TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
