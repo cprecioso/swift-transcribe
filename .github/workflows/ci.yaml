@@ -72,9 +72,9 @@ jobs:
           BIN_PATH: ${{ steps.set-vars.outputs.BIN_PATH }}
           VARIANT_PATH: ${{ steps.set-vars.outputs.VARIANT_PATH }}
 
-      - run: zip -r "$EXECUTABLE.artifactbundle.zip" "$OUTPUT_DIR"
+      - run: zip -r "../$EXECUTABLE.artifactbundle.zip" "$OUTPUT_DIR"
 
       - uses: actions/upload-artifact@v7
         with:
-          name: "${{ matrix.EXECUTABLE}}.artifactbundle-${{ matrix.env.TRIPLE}}"
+          name: "${{ matrix.EXECUTABLE}}-${{ matrix.env.TRIPLE}}"
           path: "${{ matrix.EXECUTABLE}}.artifactbundle.zip"
