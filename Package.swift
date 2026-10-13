@@ -22,5 +22,5 @@ let package = Package(
       ],
       swiftSettings: [.enableUpcomingFeature("ApproachableConcurrency")],
     )
-  ]
+  ],
 )
