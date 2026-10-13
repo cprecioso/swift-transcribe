@@ -1,0 +1,75 @@
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+name: Continuous Integration
+
+concurrency:
+  group: "ci-${{ github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        executable:
+          - transcribe
+        env:
+          - runner: macos-26
+            triple: arm64-apple-macosx
+          - runner: macos-26-intel
+            triple: x86_64-apple-macosx
+
+    runs-on: ${{ matrix.env.runner }}
+
+    env:
+      EXECUTABLE: ${{ matrix.executable }}
+      TRIPLE: ${{ matrix.env.triple }}
+
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
+
+      - run: swift build --configuration release --product "$EXECUTABLE"
+        env:
+          EXECUTABLE: ${{ matrix.executable }}
+      - id: set-vars
+        run: |
+          echo "BIN_PATH=$(swift build --configuration release --product "$EXECUTABLE" --show-bin-path)" >> "$GITHUB_OUTPUT"
+          echo "VARIANT_PATH=$EXECUTABLE-$TRIPLE/$EXECUTABLE" >> "$GITHUB_OUTPUT"
+          echo "VERSION=$(cat version.txt)" >> "$GITHUB_OUTPUT"
+      - run: jq -n "$JQ_PROGRAM" > info.json
+        env:
+          VARIANT_PATH: ${{ steps.set-vars.outputs.VARIANT_PATH }}
+          VERSION: ${{ steps.set-vars.outputs.VERSION }}
+          JQ_PROGRAM: |
+            {
+              "schemaVersion": "1.0",
+              "artifacts": {
+                [env.EXECUTABLE]: {
+                  "version": env.VERSION,
+                  "type": "executable",
+                  "variants": [
+                    {
+                      "path": env.VARIANT_PATH,
+                      "supportedTriples": [env.TRIPLE]
+                    }
+                  ]
+                }
+              }
+            }
+      - run: zip -r "$EXECUTABLE.artifactbundle.zip" info.json
+
+      - run: zip -r "$EXECUTABLE.artifactbundle.zip" "$BIN_PATH/$EXECUTABLE" -j -x "$BIN_PATH/$EXECUTABLE" -d "$VARIANT_PATH"
+        env:
+          BIN_PATH: ${{ steps.set-vars.outputs.BIN_PATH }}
+          EXECUTABLE: ${{ matrix.executable }}
+          VARIANT_PATH: ${{ steps.set-vars.outputs.VARIANT_PATH }}
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: "${{ matrix.EXECUTABLE}}.artifactbundle-${{ matrix.env.TRIPLE}}"
+          path: "${{ matrix.EXECUTABLE}}.artifactbundle.zip"
