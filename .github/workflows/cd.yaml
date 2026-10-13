@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   ci:
-    uses: $/.github/workflows/ci.yaml
+    uses: ./.github/workflows/ci.yaml
 
   release-please:
     needs: ci
@@ -25,4 +25,19 @@ jobs:
       pull-requests: write
 
     steps:
-      - uses: googleapis/release-please-action@v5
+      - id: release
+        uses: googleapis/release-please-action@v5
+
+      - if: ${{ steps.release.outputs.release_created }}
+        uses: actions/download-artifact@v8
+        with:
+          pattern: "*.artifactbundle"
+          path: release-assets
+          merge-multiple: true
+
+      - if: ${{ steps.release.outputs.release_created }}
+        run: gh release upload "$TAG_NAME" release-assets/*.artifactbundle.zip
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG_NAME: ${{ steps.release.outputs.tag_name }}
