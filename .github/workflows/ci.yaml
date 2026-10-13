@@ -68,6 +68,9 @@ jobs:
       - run: |
           mkdir -p "$(dirname "$OUTPUT_DIR/$VARIANT_PATH")"
           cp "$BIN_PATH/$EXECUTABLE" "$OUTPUT_DIR/$VARIANT_PATH"
+        env:
+          BIN_PATH: ${{ steps.set-vars.outputs.BIN_PATH }}
+          VARIANT_PATH: ${{ steps.set-vars.outputs.VARIANT_PATH }}
 
       - run: zip -r "$EXECUTABLE.artifactbundle.zip" "$OUTPUT_DIR"
 
