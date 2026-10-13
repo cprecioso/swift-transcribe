@@ -13,6 +13,12 @@ url = "https://github.com/jqlang/jq/releases/download/jq-1.8.2/jq-macos-arm64"
 url_api = "https://api.github.com/repos/jqlang/jq/releases/assets/453012783"
 provenance = "github-attestations"
 
+[tools.jq."platforms.macos-x64"]
+checksum = "sha256:e94b266e3c26690550006abe63152b782280f4e14374accdf04cbde844f00bc0"
+url = "https://github.com/jqlang/jq/releases/download/jq-1.8.2/jq-macos-amd64"
+url_api = "https://api.github.com/repos/jqlang/jq/releases/assets/453012782"
+provenance = "github-attestations"
+
 [[tools.swift]]
 version = "6.4.0"
 backend = "core:swift"
@@ -20,3 +26,7 @@ specifiers = ["latest"]
 
 [tools.swift."platforms.macos-arm64"]
 checksum = "blake3:b7d02453cf1224c0b2e4ee2bf6c22b7ea9f7c0fb7beb8eeb3446a858d387d3b2"
+url = "https://download.swift.org/swift-6.4.0-release/xcode/swift-6.4.0-RELEASE/swift-6.4.0-RELEASE-osx.pkg"
+
+[tools.swift."platforms.macos-x64"]
+url = "https://download.swift.org/swift-6.4.0-release/xcode/swift-6.4.0-RELEASE/swift-6.4.0-RELEASE-osx.pkg"
