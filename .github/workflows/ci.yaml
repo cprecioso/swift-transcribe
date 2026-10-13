@@ -93,7 +93,7 @@ jobs:
 
     env:
       INPUT_DIR: input
-      OUTPUT_DIR: build-output
+      OUTPUT_DIR: ${{ matrix.executable }}.artifactbundle
 
     steps:
       - uses: actions/checkout@v7
@@ -125,3 +125,11 @@ jobs:
                   )
                 )
             )
+
+      - run: zip -r "$OUTPUT_DIR.zip" "$OUTPUT_DIR"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: "${{ matrix.executable }}.artifactbundle"
+          path: "${{ env.OUTPUT_DIR }}.zip"
+          if-no-files-found: error
