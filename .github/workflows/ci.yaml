@@ -26,6 +26,7 @@ jobs:
     env:
       EXECUTABLE: ${{ matrix.executable }}
       TRIPLE: ${{ matrix.env.triple }}
+      OUTPUT_DIR: build-output
 
     steps:
       - uses: actions/checkout@v7
@@ -34,12 +35,16 @@ jobs:
       - run: swift build --configuration release --product "$EXECUTABLE"
         env:
           EXECUTABLE: ${{ matrix.executable }}
+
       - id: set-vars
         run: |
           echo "BIN_PATH=$(swift build --configuration release --product "$EXECUTABLE" --show-bin-path)" >> "$GITHUB_OUTPUT"
           echo "VARIANT_PATH=$EXECUTABLE-$TRIPLE/$EXECUTABLE" >> "$GITHUB_OUTPUT"
           echo "VERSION=$(cat version.txt)" >> "$GITHUB_OUTPUT"
-      - run: jq -n "$JQ_PROGRAM" > info.json
+
+      - run: |
+          mkdir -p "$OUTPUT_DIR"
+          jq -n "$JQ_PROGRAM" > "$OUTPUT_DIR/info.json"
         env:
           VARIANT_PATH: ${{ steps.set-vars.outputs.VARIANT_PATH }}
           VERSION: ${{ steps.set-vars.outputs.VERSION }}
@@ -59,13 +64,12 @@ jobs:
                 }
               }
             }
-      - run: zip -r "$EXECUTABLE.artifactbundle.zip" info.json
 
-      - run: zip -r "$EXECUTABLE.artifactbundle.zip" "$BIN_PATH/$EXECUTABLE" -j -x "$BIN_PATH/$EXECUTABLE" -d "$VARIANT_PATH"
-        env:
-          BIN_PATH: ${{ steps.set-vars.outputs.BIN_PATH }}
-          EXECUTABLE: ${{ matrix.executable }}
-          VARIANT_PATH: ${{ steps.set-vars.outputs.VARIANT_PATH }}
+      - run: |
+          mkdir -p "$(dirname "$OUTPUT_DIR/$VARIANT_PATH")"
+          cp "$BIN_PATH/$EXECUTABLE" "$OUTPUT_DIR/$VARIANT_PATH"
+
+      - run: zip -r "$EXECUTABLE.artifactbundle.zip" "$OUTPUT_DIR"
 
       - uses: actions/upload-artifact@v7
         with:
