@@ -39,7 +39,7 @@ jobs:
       - id: set-vars
         run: |
           echo "BIN_PATH=$(swift build --configuration release --product "$EXECUTABLE" --show-bin-path)" >> "$GITHUB_OUTPUT"
-          echo "VARIANT_PATH=$EXECUTABLE-$TRIPLE/$EXECUTABLE" >> "$GITHUB_OUTPUT"
+          echo "VARIANT_PATH=variants/$EXECUTABLE-$TRIPLE/$EXECUTABLE" >> "$GITHUB_OUTPUT"
           echo "VERSION=$(cat version.txt)" >> "$GITHUB_OUTPUT"
 
       - run: |
@@ -77,6 +77,59 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name: "${{ matrix.EXECUTABLE}}-${{ matrix.env.TRIPLE}}"
+          name: "artifactbundle-${{ matrix.EXECUTABLE}}-${{ matrix.env.TRIPLE}}"
           path: "${{ matrix.EXECUTABLE}}.artifactbundle.zip"
+          if-no-files-found: error
+
+  bundle:
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        executable:
+          - transcribe
+
+    env:
+      INPUT_DIR: input
+      OUTPUT_DIR: ${{ matrix.executable }}.artifactbundle
+
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: "artifactbundle-*"
+          path: ${{ env.INPUT_DIR }}
+
+      - run: |
+          for f in ./"$INPUT_DIR"/*/*.artifactbundle.zip; do
+            unzip -q -o "$f" -d "$(dirname "$f")"
+          done
+
+      - run: |
+          mkdir -p "$OUTPUT_DIR/variants"
+          jq --slurp "$JQ_PROGRAM" ./"$INPUT_DIR"/*/info.json > "$OUTPUT_DIR/info.json"
+          cp -R ./"$INPUT_DIR"/*/variants/* "$OUTPUT_DIR/variants/"
+        env:
+          JQ_PROGRAM: |
+            reduce .[] as $item ({};
+              . + ($item | del(.artifacts))
+              | reduce ($item.artifacts // {} | to_entries[]) as $a (.;
+                  .artifacts[$a.key] |= (
+                    (.variants // []) as $prev
+                    | . + $a.value
+                    | .variants = (($prev + ($a.value.variants // [])) | unique)
+                  )
+                )
+            )
+
+      - run: zip -r "$OUTPUT_DIR.zip" "$OUTPUT_DIR"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: "${{ matrix.executable }}.artifactbundle"
+          path: "${{ env.OUTPUT_DIR }}.zip"
           if-no-files-found: error
