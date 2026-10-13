@@ -105,9 +105,14 @@ jobs:
           path: ${{ env.INPUT_DIR }}
 
       - run: |
+          for f in ./"$INPUT_DIR"/*/*.artifactbundle.zip; do
+            unzip -q -o "$f" -d "$(dirname "$f")"
+          done
+
+      - run: |
           mkdir -p "$OUTPUT_DIR/variants"
           jq --slurp "$JQ_PROGRAM" ./"$INPUT_DIR"/*/info.json > "$OUTPUT_DIR/info.json"
-          cp ./"$INPUT_DIR"/*/variants/* "$OUTPUT_DIR/variants/"
+          cp -R ./"$INPUT_DIR"/*/variants/* "$OUTPUT_DIR/variants/"
         env:
           JQ_PROGRAM: |
             reduce .[] as $item ({};
