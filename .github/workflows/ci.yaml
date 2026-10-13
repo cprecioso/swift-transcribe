@@ -47,7 +47,7 @@ jobs:
             {
               "schemaVersion": "1.0",
               "artifacts": {
-                [env.EXECUTABLE]: {
+                (env.EXECUTABLE): {
                   "version": env.VERSION,
                   "type": "executable",
                   "variants": [
