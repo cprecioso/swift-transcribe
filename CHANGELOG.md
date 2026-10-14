@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/cprecioso/swift-transcribe/compare/v0.2.0...v0.2.1) (2026-10-14)
+
+
+### Bug Fixes
+
+* correctly publish assets on release ([be371e4](https://github.com/cprecioso/swift-transcribe/commit/be371e41b6acd39326b4f9eb36531c0e7d773c8c))
+
 ## [0.2.0](https://github.com/cprecioso/swift-transcribe/compare/v0.1.0...v0.2.0) (2026-10-14)
 
 
