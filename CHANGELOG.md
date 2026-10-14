@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/cprecioso/swift-transcribe/compare/v0.1.0...v0.2.0) (2026-10-14)
+
+
+### Features
+
+* lower macos requirement to v26 ([c864f33](https://github.com/cprecioso/swift-transcribe/commit/c864f338872e1c8a90f15efbdf79ceb26aaacea3))
+
 ## [0.1.0](https://github.com/cprecioso/swift-transcribe/compare/v0.1.0...v0.1.0) (2026-10-13)
 
 
